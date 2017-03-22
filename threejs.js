@@ -5,6 +5,8 @@ var aspect = window.innerWidth / window.innerHeight;
 var camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.BasicShadowMap;
 var canvas = renderer.domElement;
 document.body.appendChild(canvas);
 var textureLoader = new THREE.TextureLoader();
@@ -13,6 +15,10 @@ var textureLoader = new THREE.TextureLoader();
 var raycaster = new THREE.Raycaster();
 var mouse = new THREE.Vector2();
 var interactableObjects = [];
+
+/*--------*
+ | Planet |
+ *--------*/
 
 var Planet = (function() {
 	
@@ -41,6 +47,10 @@ var Planet = (function() {
 		this.light = null;
 		if (typeof args.lightIntensity != "undefined") {
 			this.light = new THREE.PointLight(0xffffff, args.lightIntensity, 0);
+			this.light.castShadow = true;
+			this.light.shadow.camera.near = 1;
+			this.light.shadow.camera.far = 30;
+			this.light.shadow.bias = 0.01;
 			this.scene.add(this.light);
 		}
 		this.controllable = args.controllable || false;
@@ -67,6 +77,10 @@ var Planet = (function() {
 			this.object.position.x = args.x || 0;
 			this.object.position.y = args.y || 0;
 			this.object.position.z = args.z || 0;
+		}
+		if (this.light == null) {
+			this.object.castShadow = true;
+			this.object.receiveShadow = true;
 		}
 		
 		// Add to array and scene
@@ -169,6 +183,10 @@ var Planet = (function() {
 	
 })();
 
+/*----------*
+ | Particle |
+ *----------*/
+
 var Particle = (function() {
 	
 	function Particle(args) {
@@ -176,19 +194,21 @@ var Particle = (function() {
 		// Properties
 		this.scene = args.scene;
 		var minLife = args.minLife || 50;
-		this.life = Math.random() * ((args.maxLife || 100) - minLife) + minLife;
+		this.startLife = Math.random() * ((args.maxLife || 100) - minLife) + minLife;
+		this.life = this.startLife;
 		var spawnRadius = args.spawnRadius || 1;
 		this.x = (args.x || 0) + spawnRadius * Math.cos(Math.random() * Math.PI);
 		this.y = (args.y || 0) + spawnRadius * Math.cos(Math.random() * Math.PI);
 		this.z = (args.z || 0) + spawnRadius * Math.cos(Math.random() * Math.PI);
+		this.dx = (args.dx || 0);
+		this.dy = (args.dy || 0);
+		this.dz = (args.dz || 0);
 		
 		// THREE object
-		this.geometry = new THREE.BoxGeometry(0.1,0.1,0.1);
-		this.material = new THREE.MeshBasicMaterial({ color: 0xd0a832 });
-		this.object = new THREE.Mesh(this.geometry, this.material);
-		this.object.position.x = this.x;
-		this.object.position.y = this.y;
-		this.object.position.z = this.z;
+		this.material = new THREE.SpriteMaterial({ map: Particle.texture, color: args.colour || 0xffffff });
+		this.object = new THREE.Sprite(this.material);
+		this.object.position.set(this.x, this.y, this.z);
+		this.object.material.blending = THREE.AdditiveBlending;
 		
 		// Add to arrays
 		this.scene.add(this.object);
@@ -196,6 +216,7 @@ var Particle = (function() {
 		
 	}
 	
+	Particle.texture = textureLoader.load("spark.png");
 	Particle.particles = [];
 	
 	Particle.prototype.step = function() {
@@ -203,6 +224,14 @@ var Particle = (function() {
 			this.scene.remove(this.object);
 			Particle.particles.splice(Particle.particles.indexOf(this), 1);
 		}
+		// Scale
+		var scale = this.life / this.startLife;
+		this.object.scale.set(scale, scale, scale);
+		// Position
+		this.x += this.dx;
+		this.y += this.dy;
+		this.z += this.dz;
+		this.object.position.set(this.x, this.y, this.z);
 	}
 	
 	return Particle;
@@ -311,7 +340,17 @@ var render = function () {
 	}
 	
 	for (var i = Particle.particles.length; i < 100; i++) {
-		new Particle({ scene: scene, x: comet.object.position.x, y: comet.object.position.y, z: comet.object.position.z });
+		new Particle({
+			scene: scene,
+			x: comet.object.position.x,
+			y: comet.object.position.y,
+			z: comet.object.position.z,
+			spawnRadius: 0.5,
+			colour: 0xf5ac3f,
+			dx: (Math.random() - 0.5) / 25,
+			dy: (Math.random() - 0.5) / 25,
+			dz: (Math.random() - 0.5) / 25
+		});
 	}
 	
 	// Camera
