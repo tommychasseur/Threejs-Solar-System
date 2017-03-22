@@ -83,6 +83,15 @@ var Planet = (function() {
 			this.object.receiveShadow = true;
 		}
 		
+		// Glow effect
+		this.glowIntensity = args.glowIntensity || 0;
+		this.currentGlow = this.glowIntensity;
+		if (this.glowIntensity > 0) {
+			this.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: Planet.glowTexture, color: args.glowColour || 0xf5ac3f, transparent: false, blending: THREE.AdditiveBlending }));
+			this.glow.scale.set(this.radius * this.glowIntensity, this.radius * this.glowIntensity, 1.0);
+			this.object.add(this.glow);
+		}
+		
 		// Add to array and scene
 		this.scene.add(this.object);
 		Planet.planets.push(this);
@@ -98,6 +107,7 @@ var Planet = (function() {
 	Planet.interactables = [];
 	Planet.loadedTextures = [];
 	Planet.following = null;
+	Planet.glowTexture = textureLoader.load("glow.png");
 	
 	/*----------------*
 	 | Static methods |
@@ -169,6 +179,11 @@ var Planet = (function() {
 			this.light.position.y = this.object.position.y;
 			this.light.position.z = this.object.position.z;
 		}
+		// Glow
+		if (this.glowIntensity > 0) {
+			var curve = Math.cos(new Date().getTime() / 1000);
+			this.glow.scale.set(this.glowIntensity + curve, this.glowIntensity + curve, 1.0);
+		}
 	}
 	
 	Planet.prototype.gravitateAround = function(planet) {
@@ -206,9 +221,9 @@ var Particle = (function() {
 		
 		// THREE object
 		this.material = new THREE.SpriteMaterial({ map: Particle.texture, color: args.colour || 0xffffff });
+		this.material.blending = THREE.AdditiveBlending;
 		this.object = new THREE.Sprite(this.material);
 		this.object.position.set(this.x, this.y, this.z);
-		this.object.material.blending = THREE.AdditiveBlending;
 		
 		// Add to arrays
 		this.scene.add(this.object);
@@ -257,13 +272,13 @@ var sunMaterial = new THREE.ShaderMaterial({
 });
 
 // Planets
-var sun = new Planet({ scene: scene, texture: "sun.jpg", radius: 3, distance: 0, lightIntensity: 2, material: sunMaterial });
+var sun = new Planet({ scene: scene, texture: "sun.jpg", radius: 3, distance: 0, lightIntensity: 2, material: sunMaterial, glowIntensity: 8 });
 var earth = new Planet({ scene: scene, texture: "earth.jpg", radius: 1, distance: 10, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: 45 });
 var uk = new Planet({ scene: scene, texture: "unionJack.png", radius: 1.2, distance: 15, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: -45, angle: 90 });
 var moon = new Planet({ scene: scene, texture: "moon.jpg", radius: 0.27, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: earth });
 var france = new Planet({ scene: scene, texture: "frenchFlag.png", radius: 0.4, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: uk });
 
-var comet = new Planet({ scene: scene, texture: "sun.jpg", lightIntensity: 2, x: 0, z: 10, y: 10, controllable: true });
+var comet = new Planet({ scene: scene, texture: "sun.jpg", lightIntensity: 2, x: 0, z: 10, y: 10, controllable: true, glowIntensity: 5 });
 
 // Function which generates n amount of planets
 function randPlanet(n) {
@@ -339,7 +354,7 @@ var render = function () {
 		Particle.particles[i].step();
 	}
 	
-	for (var i = Particle.particles.length; i < 100; i++) {
+	for (var i = Particle.particles.length; i < 500; i++) {
 		new Particle({
 			scene: scene,
 			x: comet.object.position.x,
