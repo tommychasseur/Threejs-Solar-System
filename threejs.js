@@ -59,6 +59,11 @@ var Planet = (function() {
 		this.dz = 0;
 		this.controlSpeed = 0;
 		
+		// Particles
+		this.particleCount = args.particleCount || 0;
+		this.particleSpawnRadius = args.particleSpawnRadius || 0.5;
+		this.particles = [];
+		
 		// Material
 		if (typeof args.material == "object" && args.material instanceof THREE.Material) {
 			this.material = args.material;
@@ -181,8 +186,28 @@ var Planet = (function() {
 		}
 		// Glow
 		if (this.glowIntensity > 0) {
-			var curve = Math.cos(new Date().getTime() / 1000);
-			this.glow.scale.set(this.glowIntensity + curve, this.glowIntensity + curve, 1.0);
+			var curve = Math.cos(new Date().getTime() / 500);
+			this.glow.scale.set(this.radius * this.glowIntensity + curve / 2 * this.radius, this.radius * this.glowIntensity + curve / 2 * this.radius, 1.0);
+		}
+		// Particles
+		for (var i in this.particles) {
+			this.particles[i].step();
+		}
+		
+		for (var i = this.particles.length; i < this.particleCount; i++) {
+			var _this = this;
+			this.particles.push(new Particle({
+				scene: this.scene,
+				x: this.object.position.x,
+				y: this.object.position.y,
+				z: this.object.position.z,
+				spawnRadius: this.particleSpawnRadius,
+				colour: 0xf5ac3f,
+				dx: (Math.random() - 0.5) / 25,
+				dy: (Math.random() - 0.5) / 25,
+				dz: (Math.random() - 0.5) / 25,
+				onDie: function() { _this.particles.splice(_this.particles.indexOf(this), 1); }
+			}));
 		}
 	}
 	
@@ -225,6 +250,9 @@ var Particle = (function() {
 		this.object = new THREE.Sprite(this.material);
 		this.object.position.set(this.x, this.y, this.z);
 		
+		// Function to call when the particle dies
+		this.onDie = args.onDie || function() {};
+		
 		// Add to arrays
 		this.scene.add(this.object);
 		Particle.particles.push(this);
@@ -238,6 +266,7 @@ var Particle = (function() {
 		if (this.life-- <= 0) {
 			this.scene.remove(this.object);
 			Particle.particles.splice(Particle.particles.indexOf(this), 1);
+			this.onDie();
 		}
 		// Scale
 		var scale = this.life / this.startLife;
@@ -272,13 +301,12 @@ var sunMaterial = new THREE.ShaderMaterial({
 });
 
 // Planets
-var sun = new Planet({ scene: scene, texture: "sun.jpg", radius: 3, distance: 0, lightIntensity: 2, material: sunMaterial, glowIntensity: 8 });
+var sun = new Planet({ scene: scene, texture: "sun.jpg", radius: 3, distance: 0, lightIntensity: 2, material: sunMaterial, glowIntensity: 8, particleCount: 500, particleSpawnRadius: 2.5 });
 var earth = new Planet({ scene: scene, texture: "earth.jpg", radius: 1, distance: 10, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: 45 });
 var uk = new Planet({ scene: scene, texture: "unionJack.png", radius: 1.2, distance: 15, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: -45, angle: 90 });
 var moon = new Planet({ scene: scene, texture: "moon.jpg", radius: 0.27, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: earth });
 var france = new Planet({ scene: scene, texture: "frenchFlag.png", radius: 0.4, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: uk });
-
-var comet = new Planet({ scene: scene, texture: "sun.jpg", lightIntensity: 2, x: 0, z: 10, y: 10, controllable: true, glowIntensity: 5 });
+var comet = new Planet({ scene: scene, texture: "sun.jpg", lightIntensity: 2, x: 0, z: 10, y: 10, controllable: true, glowIntensity: 5, particleCount: 500, particleSpawnRadius: 0.5 });
 
 // Function which generates n amount of planets
 function randPlanet(n) {
@@ -350,7 +378,7 @@ var render = function () {
 	}
 	
 	// Cycle through the particles
-	for (var i in Particle.particles) {
+	/*for (var i in Particle.particles) {
 		Particle.particles[i].step();
 	}
 	
@@ -366,7 +394,7 @@ var render = function () {
 			dy: (Math.random() - 0.5) / 25,
 			dz: (Math.random() - 0.5) / 25
 		});
-	}
+	}*/
 	
 	// Camera
 	camera.position.x = Planet.following.object.position.x + zoom * (Math.sin(THREE.Math.degToRad(cameraXAngle)) * Math.abs(Math.cos(THREE.Math.degToRad(cameraYAngle))));
