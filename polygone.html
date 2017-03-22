@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r81/three.min.js"></script>
+	<script>
+obj = {};
+$(function() {
+	// Set up the scene
+	var canvas = $("#polygone").get(0);
+	obj.renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
+	obj.camera = new THREE.OrthographicCamera(-1, +1, +1, -1, +1, -1);
+	obj.scene = new THREE.Scene();
+	
+	renderStar(4);
+});
+
+// Function which renders a polygone with n vertices
+renderPolygone = function(n) {
+	// Create geometry
+	var geometry = new THREE.Geometry();
+	geometry.vertices.push (new THREE.Vector3 (0, 0, 0));
+	for (var i = 0; i <= n; i++) {
+		geometry.vertices.push(new THREE.Vector3(Math.cos(2 * i * Math.PI / n), Math.sin(2 * i * Math.PI / n), 0));
+		if (i > 0) {
+			geometry.faces.push(new THREE.Face3(0, i - 1, i));
+		}
+	}
+	geometry.faces.push(new THREE.Face3(0, n, 1));
+	var material = new THREE.MeshBasicMaterial({color: '#fff'});
+	obj.scene.add(new THREE.Mesh(geometry, material));
+	
+	// Render the scene
+	obj.renderer.setClearColor(0x000000, 1);
+	obj.renderer.render(obj.scene, obj.camera);
+	
+	// Remove the object for next render
+	obj.scene.remove(obj.scene.children[0]);
+}
+
+// Function which renders a star with n branches
+renderStar = function(n) {
+	// Create geometry
+	var geometry = new THREE.Geometry();
+	geometry.vertices.push (new THREE.Vector3 (0, 0, 0));
+	/*for (var i = 0; i <= n; i++) {
+		var angle = 2 * i * Math.PI / n;
+		geometry.vertices.push(new THREE.Vector3(Math.cos(angle + (Math.PI / n)), Math.sin(angle + (Math.PI / n)), 0));
+		geometry.vertices.push(new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0));
+		geometry.vertices.push(new THREE.Vector3(Math.cos(angle - (Math.PI / n)), Math.sin(angle - (Math.PI / n)), 0));
+		//geometry.faces.push(new THREE.Face3(0, 3 * i, 3 * i + 1));
+		//geometry.faces.push(new THREE.Face3(0, 3 * i, 3 * i + 2));
+		geometry.faces.push(new THREE.Face3(0, 3 * i + 1, 3 * i + 2));
+		geometry.faces.push(new THREE.Face3(0, 3 * i + 1, 3 * i + 3));
+	}*/
+	geometry.vertices.push(new THREE.Vector3(0.5, 0.5, 0));
+	geometry.vertices.push(new THREE.Vector3(1, 0, 0));
+	geometry.vertices.push(new THREE.Vector3(0.5, -0.5, 0));
+	geometry.faces.push(new THREE.Face3(0, 1, 2));
+	geometry.faces.push(new THREE.Face3(0, 2, 3));
+	console.log(geometry.vertices, geometry.faces)
+	var material = new THREE.MeshBasicMaterial({color: '#fff'});
+	obj.scene.add(new THREE.Mesh(geometry, material));
+	
+	// Render the scene
+	obj.renderer.setClearColor(0x000000, 1);
+	obj.renderer.render(obj.scene, obj.camera);
+	
+	// Remove the object for next render
+	obj.scene.remove(obj.scene.children[0]);
+}
+	</script>
+</head>
+<body>
+	<canvas id="polygone" width="640" height="480"></canvas>
+</body>
+</html>

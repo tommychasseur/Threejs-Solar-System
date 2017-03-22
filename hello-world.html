@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <title>WebGL - Hello, world!</title>
+    <meta name="description" content="WebGL - Hello, world!">
+    <meta name="author" content="Aassif Benassarou">
+    <link rel="stylesheet" href="//bns.sr/webgl/tp/style.css">
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      precision mediump float;
+	  
+      attribute vec2 position;
+	  attribute vec4 vertexColor;
+	  
+	  varying vec4 color;
+      void main ()
+      {
+        gl_Position = vec4 (position, 0.0, 1.0);
+		color = vertexColor;
+      }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      precision mediump float;
+      varying vec4 color;
+      void main ()
+      {
+        gl_FragColor = color;
+      }
+    </script>
+
+    <script>
+      var CreateShader = function (gl, type, id)
+      {
+        var shader = gl.createShader (type);
+        var script = document.getElementById (id);
+        gl.shaderSource (shader, script.textContent);
+        gl.compileShader (shader);
+        if (! gl.getShaderParameter (shader, gl.COMPILE_STATUS))
+        {
+          alert (gl.getShaderInfoLog (shader));
+          return null;
+        } 
+
+        return shader;
+      }
+
+      var CreateProgram = function (gl, vertex, fragment)
+      {
+        var program = gl.createProgram ();
+        gl.attachShader (program, CreateShader (gl, gl.VERTEX_SHADER,   vertex));
+        gl.attachShader (program, CreateShader (gl, gl.FRAGMENT_SHADER, fragment));
+        gl.linkProgram (program);
+        if (! gl.getProgramParameter (program, gl.LINK_STATUS))
+        {
+          alert (gl.getProgramInfoLog (program));
+          return null;
+        }
+
+        return program;
+      }
+
+      var HelloWorld = function (canvas)
+      {
+        this.canvas = document.getElementById (canvas);
+        this.gl = this.canvas.getContext ("webgl");
+        var w = this.canvas.width;
+        var h = this.canvas.height;
+        console.log ("HelloWorld: " + w + 'x' + h);
+
+        var gl = this.gl;
+        gl.viewport (0, 0, w, h);
+        gl.clearColor (0, 1, 0, 1);
+
+        this.vbo = gl.createBuffer ();
+        gl.bindBuffer (gl.ARRAY_BUFFER, this.vbo);
+        var VERTICES = [-0.75, 0.75,  -0.25, 0.75,  -0.75, 0.25,  -0.25, 0.25];
+        gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (VERTICES), gl.STATIC_DRAW);
+		
+		this.vboColors = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vboColors);
+		var COLORS = [
+			1.0, 1.0, 1.0, 1.0,
+			1.0, 1.0, 1.0, 1.0,
+			1.0, 1.0, 1.0, 1.0,
+			1.0, 1.0, 1.0, 1.0
+		];
+		gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (COLORS), gl.STATIC_DRAW);
+		
+		this.square2 = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.square2);
+		VERTICES = [
+			 0.5 + (Math.cos(4*Math.PI/6) * 0.375), -0.5 - (Math.sin(4*Math.PI/6) * 0.375),
+			//-0.5, -0.5,
+			0.5 + (Math.cos(Math.PI/6) * 0.375), -0.5 - (Math.sin(Math.PI/6) * 0.375),
+			0.5 + (Math.cos(7*Math.PI/6) * 0.375), -0.5 - (Math.sin(7*Math.PI/6) * 0.375),
+			0.5 + (Math.cos(10*Math.PI/6) * 0.375), -0.5 - (Math.sin(10*Math.PI/6) * 0.375)
+		];
+		gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (VERTICES), gl.STATIC_DRAW);
+		
+		this.square2Colors = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.square2Colors);
+		var COLORS = [
+			1.0, 0.0, 0.0, 1.0,
+			1.0, 0.0, 0.0, 1.0,
+			1.0, 0.0, 0.0, 1.0,
+			1.0, 0.0, 0.0, 1.0
+		];
+		gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (COLORS), gl.STATIC_DRAW);
+		
+        gl.bindBuffer (gl.ARRAY_BUFFER, null);
+
+        this.program = CreateProgram (gl, 'vertex-shader', 'fragment-shader');
+        gl.bindAttribLocation (this.program, 0, "position");
+
+        this.animate ();
+      }
+
+      HelloWorld.prototype =
+      {
+        constructor: HelloWorld,
+
+        animate: function ()
+        {
+          var gl = this.gl;
+          gl.clear (gl.COLOR_BUFFER_BIT);
+
+          gl.useProgram (this.program);
+          //gl.uniform4f (gl.getUniformLocation (this.program, "color"), 1, 1, 1, 1);
+
+          gl.bindBuffer (gl.ARRAY_BUFFER, this.vbo);
+          gl.enableVertexAttribArray (0);
+          gl.vertexAttribPointer (0, 2, gl.FLOAT, false, 0, 0);
+          gl.bindBuffer (gl.ARRAY_BUFFER, this.vboColors);
+          gl.vertexAttribPointer (1, 4, gl.FLOAT, false, 0, 0);
+          gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
+          gl.disableVertexAttribArray (0);
+		  
+		  gl.bindBuffer (gl.ARRAY_BUFFER, this.square2);
+		  gl.enableVertexAttribArray (0);
+		  gl.vertexAttribPointer (0, 2, gl.FLOAT, false, 0, 0);
+          gl.bindBuffer (gl.ARRAY_BUFFER, this.square2Colors);
+          gl.vertexAttribPointer (1, 4, gl.FLOAT, false, 0, 0);
+		  gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
+		  gl.disableVertexAttribArray (0);
+		  
+          gl.bindBuffer (gl.ARRAY_BUFFER, null);
+
+          gl.useProgram (null);
+
+          requestAnimationFrame (this.animate.bind (this));
+        }
+      }
+    </script>
+
+    <style>
+      body {text-align: center;}
+    </style>
+  </head>
+
+  <body>
+    <h1><i>Hello, world!</i></h1>
+    <canvas id="canvas:hello-world" width="600" height="600"></canvas>
+    <script>new HelloWorld ('canvas:hello-world');</script>
+  </body>
+</html>
