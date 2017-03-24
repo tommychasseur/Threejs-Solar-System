@@ -340,7 +340,11 @@ skybox.scale.x = -1;
 camera.position.z = 5;
 
 var pressedButtons = [];
-window.onkeydown = function(event) { pressedButtons[event.which] = true; }
+window.onkeydown = function(event) {
+	pressedButtons[event.which] = true;
+	// Pause / Unpause the game
+	if (event.which == 32) { paused = !paused; $("#pause").fadeToggle(0); }
+}
 window.onkeyup = function(event) { pressedButtons[event.which] = false; }
 var pressedMousedButtons = [];
 canvas.onmousedown = function(event) {
@@ -368,13 +372,19 @@ window.onmouseup = function(event) { pressedMousedButtons[event.which] = false; 
 var cameraXAngle = 45;
 var cameraYAngle = 27;
 var zoom = 30;
+var paused = false;
 Planet.following = Planet.planets[0];
 var render = function () {
 	requestAnimationFrame( render );
 	
-	// Cycle through the planets
-	for (var i in Planet.planets) {
-		Planet.planets[i].step();
+	if (!paused) {
+		// Cycle through the planets
+		for (var i in Planet.planets) {
+			Planet.planets[i].step();
+		}
+	
+		// Update the lava
+		sunMaterialUniforms.time.value += 0.05;
 	}
 	
 	// Camera
@@ -388,9 +398,6 @@ var render = function () {
 	skybox.position.x = camera.position.x;
 	skybox.position.y = camera.position.y;
 	skybox.position.z = camera.position.z;
-	
-	// Update the lava
-	sunMaterialUniforms.time.value += 0.05;
 	
 	// Render the scene
 	renderer.render(scene, camera);

@@ -16,6 +16,8 @@ html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%;
 #buttons:hover { opacity: 1; }
 #buttons > div { margin: 4px 0px; border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; width: 50px; height: 50px; box-sizing: border-box; font-size: 24px; }
 .fa-in-corner { transform: scale(0.5) translate(100%, 100%); position: absolute; top: 0px; left: 0px; }
+#pause { position: absolute; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; flex-direction: column; }
+#pause h1 { font-size: 48px; font-family: monospace; }
 	</style>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 	<script src="three.min.js"></script>
@@ -63,6 +65,7 @@ void main()
 	</script>
 </head>
 <body>
+	<div id="pause" style="display: none;"><i class="fa fa-pause" style="font-size: 72px;"></i><h1>Pause</h1></div>
 	<div id="header">
 		<h1>Solar system</h1>
 		<div>Thomas Hunter</div>
@@ -75,6 +78,7 @@ void main()
 	<div id="text">
 		<div>Click a planet to center on it</div>
 		<div>Control the comet with the <i class="fa fa-toggle-up"></i> and the <i class="fa fa-toggle-down"></i> arrow keys or the W/Z and S keys</div>
+		<div>Pause with space</div>
 	</div>
 </body>
 </html>
