@@ -133,11 +133,10 @@ var Planet = (function() {
 		// Object is controllable
 		if (this.controllable) {
 			// Movements
-			var cYA = cameraYAngle + 10;
 			var progression = 0.005;
-			this.dx = -this.controlSpeed * Math.sin(THREE.Math.degToRad(cameraXAngle)) * Math.abs(Math.cos(THREE.Math.degToRad(cYA)));
-			this.dy = -this.controlSpeed * Math.sin(THREE.Math.degToRad(cYA));
-			this.dz = -this.controlSpeed * Math.cos(THREE.Math.degToRad(cameraXAngle)) * Math.abs(Math.cos(THREE.Math.degToRad(cYA)));
+			this.dx = -this.controlSpeed * Math.sin(THREE.Math.degToRad(cameraXAngle)) * Math.abs(Math.cos(THREE.Math.degToRad(cameraYAngle)));
+			this.dy = -this.controlSpeed * Math.sin(THREE.Math.degToRad(cameraYAngle));
+			this.dz = -this.controlSpeed * Math.cos(THREE.Math.degToRad(cameraXAngle)) * Math.abs(Math.cos(THREE.Math.degToRad(cameraYAngle)));
 			if ((pressedButtons[38] && !pressedButtons[40]) || ((pressedButtons[87] || pressedButtons[90]) && !pressedButtons[83])) {
 				this.controlSpeed += progression;
 				if (this.controlSpeed > 1) { this.controlSpeed = 1; }
@@ -237,9 +236,10 @@ var Particle = (function() {
 		this.startLife = Math.random() * ((args.maxLife || 100) - minLife) + minLife;
 		this.life = this.startLife;
 		var spawnRadius = args.spawnRadius || 1;
-		this.x = (args.x || 0) + spawnRadius * Math.cos(Math.random() * Math.PI);
-		this.y = (args.y || 0) + spawnRadius * Math.cos(Math.random() * Math.PI);
-		this.z = (args.z || 0) + spawnRadius * Math.cos(Math.random() * Math.PI);
+                var angle1 = Math.random() * Math.PI * 2, angle2 = Math.random() * Math.PI * 2;
+		this.x = (args.x || 0) + spawnRadius * Math.cos(angle1) * Math.sin(angle2);
+		this.y = (args.y || 0) + spawnRadius * Math.sin(angle1) * Math.sin(angle2);
+		this.z = (args.z || 0) + spawnRadius * Math.cos(angle2);
 		this.dx = (args.dx || 0);
 		this.dy = (args.dy || 0);
 		this.dz = (args.dz || 0);
@@ -376,25 +376,6 @@ var render = function () {
 	for (var i in Planet.planets) {
 		Planet.planets[i].step();
 	}
-	
-	// Cycle through the particles
-	/*for (var i in Particle.particles) {
-		Particle.particles[i].step();
-	}
-	
-	for (var i = Particle.particles.length; i < 500; i++) {
-		new Particle({
-			scene: scene,
-			x: comet.object.position.x,
-			y: comet.object.position.y,
-			z: comet.object.position.z,
-			spawnRadius: 0.5,
-			colour: 0xf5ac3f,
-			dx: (Math.random() - 0.5) / 25,
-			dy: (Math.random() - 0.5) / 25,
-			dz: (Math.random() - 0.5) / 25
-		});
-	}*/
 	
 	// Camera
 	camera.position.x = Planet.following.object.position.x + zoom * (Math.sin(THREE.Math.degToRad(cameraXAngle)) * Math.abs(Math.cos(THREE.Math.degToRad(cameraYAngle))));
