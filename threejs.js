@@ -1,6 +1,11 @@
 $(function() {
 
-var scene = new THREE.Scene();
+// Include core libraries for Physijs	
+Physijs.scripts.worker = "physijs_worker.js";
+Physijs.scripts.ammo = "ammo.js";
+
+var scene = new Physijs.Scene();
+scene.setGravity(new THREE.Vector3(0,0,0));
 var aspect = window.innerWidth / window.innerHeight;
 var camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 var renderer = new THREE.WebGLRenderer();
@@ -58,6 +63,7 @@ var Planet = (function() {
 		this.dy = 0;
 		this.dz = 0;
 		this.controlSpeed = 0;
+		this.hasPhysics = args.hasPhysics || false;
 		
 		// Particles
 		this.particleCount = args.particleCount || 0;
@@ -77,11 +83,14 @@ var Planet = (function() {
 		this.geometry = new THREE.SphereGeometry(this.radius, 50, 50);
 		
 		// THREE object
-		this.object = new THREE.Mesh(this.geometry, this.material);
+		this.object = new Physijs.SphereMesh(this.geometry, this.material);
 		if (this.controllable) {
 			this.object.position.x = args.x || 0;
 			this.object.position.y = args.y || 0;
 			this.object.position.z = args.z || 0;
+			// Tell Physijs that the position and rotation was changed manually
+			this.object.__dirtyPosition = true;
+			this.object.__dirtyRotation = true;
 		}
 		if (this.light == null) {
 			this.object.castShadow = true;
@@ -97,10 +106,22 @@ var Planet = (function() {
 			this.object.add(this.glow);
 		}
 		
+		/*--------------------*
+		 | Initial operations |
+		 *--------------------*/
+		
 		// Add to array and scene
 		this.scene.add(this.object);
 		Planet.planets.push(this);
 		Planet.interactables.push(this.object);
+		
+		/*--------*
+		 | Events |
+		 *--------*/
+		
+		this.object.addEventListener("collision", (otherObject) => {
+			console.log("collision!");
+		});
 		
 	}
 	
@@ -130,8 +151,12 @@ var Planet = (function() {
 	 *------------------*/
 	
 	Planet.prototype.step = function() {
+		// Object has physics
+		if (this.hasPhysics) {
+			
+		}
 		// Object is controllable
-		if (this.controllable) {
+		else if (this.controllable) {
 			// Movements
 			var progression = 0.005;
 			this.dx = -this.controlSpeed * Math.sin(THREE.Math.degToRad(cameraXAngle)) * Math.abs(Math.cos(THREE.Math.degToRad(cameraYAngle)));
@@ -152,6 +177,9 @@ var Planet = (function() {
 			this.object.position.x += this.dx;
 			this.object.position.y += this.dy;
 			this.object.position.z += this.dz;
+			// Tell Physijs that the position and rotation was changed manually
+			this.object.__dirtyPosition = true;
+			this.object.__dirtyRotation = true;
 		}
 		// Object is not controllable
 		else {
@@ -176,6 +204,9 @@ var Planet = (function() {
 				this.centerY = this.satelliteOf.object.position.y;
 				this.centerZ = this.satelliteOf.object.position.z;
 			}
+			// Tell Physijs that the position and rotation was changed manually
+			this.object.__dirtyPosition = true;
+			this.object.__dirtyRotation = true;
 		}
 		// Light position
 		if (this.light != null) {
@@ -307,14 +338,16 @@ var uk = new Planet({ scene: scene, texture: "img/unionJack.png", radius: 1.2, d
 var moon = new Planet({ scene: scene, texture: "img/moon.jpg", radius: 0.27, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: earth });
 var france = new Planet({ scene: scene, texture: "img/frenchFlag.png", radius: 0.4, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: uk });
 var comet = new Planet({ scene: scene, texture: "img/sun.jpg", lightIntensity: 2, x: 0, z: 10, y: 10, controllable: true, glowIntensity: 5, particleCount: 500, particleSpawnRadius: 0.5 });
+//var physicsComet = new Planet({ scene: scene, texture: "img/sun.jpg", lightIntensity: 2, x: 0, z: -10, y: 10, controllable: true, glowIntensity: 2, radius: 0.5, particleCount: 100, particleSpawnRadius: 0.2, hasPhysics: true });
 
 // Function which generates n amount of planets
 function randPlanet(n) {
     if (typeof n == "undefined") { n = 1; }
+	var textures = ["img/moon.jpg", "img/earth.jpg", "img/sun.jpg", "img/unionJack.png", "img/frenchFlag.png"];
     for (var i = 0; i < n; i++) {
         var lastPlanet = new Planet({
             scene: scene,
-            texture: Math.random() > 0.5 ? "moon.jpg" : "earth.jpg",
+            texture: textures[Math.floor(Math.random() * textures.length)],
             radius: Math.random() * 2 + 0.1,
             distance: Math.random() * 10 + 1,
             rotateSpeed: Math.random() / 10,
@@ -400,6 +433,7 @@ var render = function () {
 	skybox.position.z = camera.position.z;
 	
 	// Render the scene
+	scene.simulate();
 	renderer.render(scene, camera);
 	
 };
