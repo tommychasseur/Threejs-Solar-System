@@ -112,7 +112,7 @@ var Planet = (function() {
 	Planet.interactables = [];
 	Planet.loadedTextures = [];
 	Planet.following = null;
-	Planet.glowTexture = textureLoader.load("glow.png");
+	Planet.glowTexture = textureLoader.load("img/glow.png");
 	
 	/*----------------*
 	 | Static methods |
@@ -259,7 +259,7 @@ var Particle = (function() {
 		
 	}
 	
-	Particle.texture = textureLoader.load("spark.png");
+	Particle.texture = textureLoader.load("img/spark.png");
 	Particle.particles = [];
 	
 	Particle.prototype.step = function() {
@@ -289,8 +289,8 @@ var sunMaterialUniforms = {
 	time:       { value: 1.0 },
 	resolution: { value: new THREE.Vector2() },
 	uvScale:    { value: new THREE.Vector2( 3.0, 1.0 ) },
-	texture1:   { value: textureLoader.load("cloud.png") },
-	texture2:   { value: textureLoader.load("lavatile.jpg") }
+	texture1:   { value: textureLoader.load("img/cloud.png") },
+	texture2:   { value: textureLoader.load("img/lavatile.jpg") }
 };
 sunMaterialUniforms.texture1.value.wrapS = sunMaterialUniforms.texture1.value.wrapT = THREE.RepeatWrapping;
 sunMaterialUniforms.texture2.value.wrapS = sunMaterialUniforms.texture2.value.wrapT = THREE.RepeatWrapping;
@@ -301,12 +301,12 @@ var sunMaterial = new THREE.ShaderMaterial({
 });
 
 // Planets
-var sun = new Planet({ scene: scene, texture: "sun.jpg", radius: 3, distance: 0, lightIntensity: 2, material: sunMaterial, glowIntensity: 8, particleCount: 500, particleSpawnRadius: 2.5 });
-var earth = new Planet({ scene: scene, texture: "earth.jpg", radius: 1, distance: 10, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: 45 });
-var uk = new Planet({ scene: scene, texture: "unionJack.png", radius: 1.2, distance: 15, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: -45, angle: 90 });
-var moon = new Planet({ scene: scene, texture: "moon.jpg", radius: 0.27, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: earth });
-var france = new Planet({ scene: scene, texture: "frenchFlag.png", radius: 0.4, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: uk });
-var comet = new Planet({ scene: scene, texture: "sun.jpg", lightIntensity: 2, x: 0, z: 10, y: 10, controllable: true, glowIntensity: 5, particleCount: 500, particleSpawnRadius: 0.5 });
+var sun = new Planet({ scene: scene, texture: "img/sun.jpg", radius: 3, distance: 0, lightIntensity: 2, material: sunMaterial, glowIntensity: 8, particleCount: 500, particleSpawnRadius: 2.5 });
+var earth = new Planet({ scene: scene, texture: "img/earth.jpg", radius: 1, distance: 10, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: 45 });
+var uk = new Planet({ scene: scene, texture: "img/unionJack.png", radius: 1.2, distance: 15, rotateSpeed: 0.01, moveSpeed: 0.1, tiltAngle: -45, angle: 90 });
+var moon = new Planet({ scene: scene, texture: "img/moon.jpg", radius: 0.27, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: earth });
+var france = new Planet({ scene: scene, texture: "img/frenchFlag.png", radius: 0.4, distance: 2, rotateSpeed: 0.01, moveSpeed: 0.5, satelliteOf: uk });
+var comet = new Planet({ scene: scene, texture: "img/sun.jpg", lightIntensity: 2, x: 0, z: 10, y: 10, controllable: true, glowIntensity: 5, particleCount: 500, particleSpawnRadius: 0.5 });
 
 // Function which generates n amount of planets
 function randPlanet(n) {
@@ -333,7 +333,7 @@ var ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 scene.add(ambientLight);
 
 // Skybox
-var skybox = new THREE.Mesh(new THREE.SphereGeometry(1000, 32, 32), new THREE.MeshBasicMaterial({map: new textureLoader.load("stars.jpg")}));
+var skybox = new THREE.Mesh(new THREE.SphereGeometry(1000, 32, 32), new THREE.MeshBasicMaterial({map: new textureLoader.load("img/stars.jpg")}));
 scene.add(skybox);
 skybox.scale.x = -1;
 
